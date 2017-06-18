@@ -1,34 +1,34 @@
 var i2c = require('i2c');
 
-// http://www.adafruit.com/datasheets/BST-BMP280-DS001-11.pdf
+// http://www.adafruit.com/datasheets/BST-bmp280-DS001-11.pdf
 
-var BMP280 = function(options) {
+var bmp280 = function(options) {
     options = options || {};
     options.device = options.device || '/dev/i2c-1';
     options.debug = options.debug || false;
   
-    var address = BMP280.I2C_ADDRESS_A;
+    var address = bmp280.I2C_ADDRESS_A;
     if ('address' in options)
         address = options.address;
 
     this.wire = new i2c(address, options);
 };
 
-BMP280.prototype.begin = function(callback) {
+bmp280.prototype.begin = function(callback) {
     var sensor = this;
 
-    sensor.wire.writeBytes(BMP280.REGISTER_CHIPID, 0, function(err) {
-        sensor.wire.readBytes(BMP280.REGISTER_CHIPID, 1, function(err, buffer) {
+    sensor.wire.writeBytes(bmp280.REGISTER_CHIPID, 0, function(err) {
+        sensor.wire.readBytes(bmp280.REGISTER_CHIPID, 1, function(err, buffer) {
 
             if ( err ) 
                 callback(err);
-            else if (buffer[0] != BMP280.CHIP_ID) 
+            else if (buffer[0] != bmp280.CHIP_ID) 
                 callback(new Error("Chip ID failed, returned " + buffer[0]));
             else {
                 sensor.readCoefficients(function(err, cal) {
                     sensor.calibration = cal;
                 
-                    sensor.wire.writeBytes(BMP280.REGISTER_CONTROL, [0x3F], function(err) {
+                    sensor.wire.writeBytes(bmp280.REGISTER_CONTROL, [0x3F], function(err) {
                         callback(err);
                     });
                 });
@@ -37,34 +37,34 @@ BMP280.prototype.begin = function(callback) {
     });
 };
 
-BMP280.I2C_ADDRESS_B               = 0x76;
-BMP280.I2C_ADDRESS_A               = 0x77;
-BMP280.CHIP_ID                     = 0x58;
+bmp280.I2C_ADDRESS_B               = 0x76;
+bmp280.I2C_ADDRESS_A               = 0x77;
+bmp280.CHIP_ID                     = 0x58;
 
-BMP280.REGISTER_DIG_T1             = 0x88;
-BMP280.REGISTER_DIG_T2             = 0x8A;
-BMP280.REGISTER_DIG_T3             = 0x8C;
+bmp280.REGISTER_DIG_T1             = 0x88;
+bmp280.REGISTER_DIG_T2             = 0x8A;
+bmp280.REGISTER_DIG_T3             = 0x8C;
 
-BMP280.REGISTER_DIG_P1             = 0x8E;
-BMP280.REGISTER_DIG_P2             = 0x90;
-BMP280.REGISTER_DIG_P3             = 0x92;
-BMP280.REGISTER_DIG_P4             = 0x94;
-BMP280.REGISTER_DIG_P5             = 0x96;
-BMP280.REGISTER_DIG_P6             = 0x98;
-BMP280.REGISTER_DIG_P7             = 0x9A;
-BMP280.REGISTER_DIG_P8             = 0x9C;
-BMP280.REGISTER_DIG_P9             = 0x9E;
+bmp280.REGISTER_DIG_P1             = 0x8E;
+bmp280.REGISTER_DIG_P2             = 0x90;
+bmp280.REGISTER_DIG_P3             = 0x92;
+bmp280.REGISTER_DIG_P4             = 0x94;
+bmp280.REGISTER_DIG_P5             = 0x96;
+bmp280.REGISTER_DIG_P6             = 0x98;
+bmp280.REGISTER_DIG_P7             = 0x9A;
+bmp280.REGISTER_DIG_P8             = 0x9C;
+bmp280.REGISTER_DIG_P9             = 0x9E;
 
-BMP280.REGISTER_CHIPID             = 0xD0;
-BMP280.REGISTER_VERSION            = 0xD1;
-BMP280.REGISTER_SOFTRESET          = 0xE0;
+bmp280.REGISTER_CHIPID             = 0xD0;
+bmp280.REGISTER_VERSION            = 0xD1;
+bmp280.REGISTER_SOFTRESET          = 0xE0;
 
-BMP280.REGISTER_CAL26              = 0xE1;  // R calibration stored in 0xE1-0xF
+bmp280.REGISTER_CAL26              = 0xE1;  // R calibration stored in 0xE1-0xF
 
-BMP280.REGISTER_CONTROL            = 0xF4;
-BMP280.REGISTER_CONFIG             = 0xF5;
-BMP280.REGISTER_PRESSUREDATA       = 0xF7;
-BMP280.REGISTER_TEMPDATA           = 0xFA;
+bmp280.REGISTER_CONTROL            = 0xF4;
+bmp280.REGISTER_CONFIG             = 0xF5;
+bmp280.REGISTER_PRESSUREDATA       = 0xF7;
+bmp280.REGISTER_TEMPDATA           = 0xFA;
 
 
 function int16(msb, lsb) {
@@ -81,8 +81,8 @@ function uint20(msb, lsb, xlsb) {
     return ((msb << 8 | lsb) << 8 | xlsb) >> 4;
 }
 
-BMP280.prototype.readCoefficients = function(callback) {
-    this.wire.readBytes(BMP280.REGISTER_DIG_T1, 24, function(err, buffer) {
+bmp280.prototype.readCoefficients = function(callback) {
+    this.wire.readBytes(bmp280.REGISTER_DIG_T1, 24, function(err, buffer) {
         var calibration = {
             dig_T1: uint16( buffer[1], buffer[0] ),
             dig_T2: int16( buffer[3], buffer[2] ),
@@ -103,17 +103,17 @@ BMP280.prototype.readCoefficients = function(callback) {
     });
 };
 
-BMP280.prototype.readPressureAndTemparature = function(callback) {
+bmp280.prototype.readPressureAndTemparature = function(callback) {
     var calibration = this.calibration;
 
     //read temp and pressure data in one stream;
-    this.wire.readBytes(BMP280.REGISTER_PRESSUREDATA, 6, function(err, buffer) {
+    this.wire.readBytes(bmp280.REGISTER_PRESSUREDATA, 6, function(err, buffer) {
         var rawPressure = uint20(buffer[0], buffer[1], buffer[2]);
         var rawTemp = uint20(buffer[3], buffer[4], buffer[5]);
 
-        var t_fine = BMP280.compensateTemperature(rawTemp, calibration);
-        var pressure = BMP280.compensatePressure(rawPressure, t_fine, calibration);
-        var temperature = BMP280.compensateTemperature2(t_fine, calibration);
+        var t_fine = bmp280.compensateTemperature(rawTemp, calibration);
+        var pressure = bmp280.compensatePressure(rawPressure, t_fine, calibration);
+        var temperature = bmp280.compensateTemperature2(t_fine, calibration);
         
         callback(null, pressure, temperature);
     });
@@ -121,7 +121,7 @@ BMP280.prototype.readPressureAndTemparature = function(callback) {
 
 // part 1 of temperature compensation
 // result is for internal use only
-BMP280.compensateTemperature = function(adc_T, cal) {
+bmp280.compensateTemperature = function(adc_T, cal) {
     var var1 = (((adc_T>>3) - (cal.dig_T1<<1)) * cal.dig_T2) >> 11;
     var var2 = (((((adc_T>>4) - (cal.dig_T1)) * ((adc_T>>4) - (cal.dig_T1))) >> 12) * (cal.dig_T3)) >> 14; 
     var t_fine = var1 + var2;
@@ -130,12 +130,12 @@ BMP280.compensateTemperature = function(adc_T, cal) {
 
 // part 2 of temperature compensation
 //returns temp in degC
-BMP280.compensateTemperature2 = function(t_fine, cal) {    
+bmp280.compensateTemperature2 = function(t_fine, cal) {    
     return ((t_fine*5+128)>>8)/100.0;
 };
 
 //returns pressure in Pa
-BMP280.compensatePressure = function(adc_P, t_fine, cal) {
+bmp280.compensatePressure = function(adc_P, t_fine, cal) {
     var var1 = t_fine - 128000;
     var var2 = var1 * var1 * cal.dig_P6;
     var2 = var2 + ((var1*cal.dig_P5)<<17);
@@ -155,4 +155,4 @@ BMP280.compensatePressure = function(adc_P, t_fine, cal) {
     return p / 256.0;
 };
 
-module.exports = BMP280;
+module.exports = bmp280;

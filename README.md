@@ -1,18 +1,21 @@
-# bmp-280 
+# bmp280 
 > cool
 
 ## Installation
 
 ```sh
-$ npm install --save node-bmp280
+$ npm install
 ```
 
 ## Usage
 
 ```js
-var BMP280 = require('node-bmp280');
+var bmp280 = require('bmp280');
 
-var barometer = new BMP280();
+// Use default address (0x77)
+var barometer = new bmp280();
+// Use custom address
+// var barometer = new bmp280({ address: 0x76 }) 
 
 barometer.begin(function(err) {
 	if (err) {
